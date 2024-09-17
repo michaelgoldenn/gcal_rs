@@ -1,0 +1,26 @@
+[package]
+name = "gcal"
+version = "0.1.6"
+edition = "2021"
+description = "gcal is simplistic a client library for Google Calendar, designed to power saturn-cli"
+authors = ["Erik Hollensbe <erik+github@hollensbe.org>"]
+license = "MIT"
+homepage = "https://github.com/erikh/gcal"
+repository = "https://github.com/erikh/gcal"
+
+[dependencies]
+anyhow = "1"
+thiserror = "1"
+
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+chrono = "0.4"
+# chrono-tz = "0.8"
+uuid = { version = "1", features = ["v4"] }
+url = "2"
+reqwest = { version = "^0.12", features = ["gzip", "json"] }
+
+[dev-dependencies]
+easy_google_oauth = { path = "./examples/easy_google_oauth" }
