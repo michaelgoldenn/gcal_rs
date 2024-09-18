@@ -8,6 +8,7 @@ use oauth2::{
     StandardTokenResponse, TokenResponse, TokenUrl,
 };
 use serde::Deserialize;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 #[derive(Deserialize)]
 pub struct AuthRequest {
@@ -110,53 +111,54 @@ impl OAuth {
         let mut oauth = OAuth::new(client_id, client_secret);
         println!("Open this URL: {}", oauth.auth_url());
 
-        let auth = listener().context("Failed to get auth response.")?;
+        let auth = listener().await.context("Failed to get auth response.")?;
         let (_, token) = oauth.auth(auth).await?;
+        println!("Successfully retrieved access token.");
         Ok(token.access_token().secret().clone())
     }
 }
-fn listener() -> Option<AuthRequest> {
-    use std::io::{BufRead, BufReader, Write};
+async fn listener() -> Option<AuthRequest> {
+    // use std::io::{BufRead, BufReader, Write};
+    use tokio::net::TcpListener;
     fn query(url: &url::Url, key: &str) -> Option<String> {
         url.query_pairs()
             .find(|(k, _)| k == key)
             .map(|(_, state)| state.into_owned())
     }
-    // A very naive implementation of the redirect server.
-    let listener = std::net::TcpListener::bind("127.0.0.1:8080").ok()?;
+    // // A very naive implementation of the redirect server.
+    let listener = TcpListener::bind("127.0.0.1:5000").await.unwrap();
+    loop {
+        if let Ok((mut stream, _)) = listener.accept().await {
+            let mut reader = BufReader::new(&mut stream);
+            let mut request_line = String::new();
+            reader.read_line(&mut request_line).await.unwrap();
 
-    // The server will terminate itself after collecting the first code.
-    let Some(mut stream) = listener.incoming().flatten().next() else {
-        panic!("listener terminated without accepting a connection");
-    };
-
-    let mut reader = BufReader::new(&stream);
-
-    let mut request_line = String::new();
-    reader.read_line(&mut request_line).ok()?;
-
-    let url = url::Url::parse(
-        &("http://localhost".to_string() + request_line.split_whitespace().nth(1)?),
-    )
-    .ok()?;
-
-    let auth = AuthRequest {
-        code: query(&url, "code")?,
-        state: query(&url, "state")?,
-        scope: query(&url, "scope")?,
-    };
-
-    let message = "Go back to your application!";
-    stream
-        .write_all(
-            format!(
-                "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
-                message.len(),
-                message
+            let url = url::Url::parse(
+                &("http://localhost".to_string() + request_line.split_whitespace().nth(1)?),
             )
-            .as_bytes(),
-        )
-        .ok()?;
+            .ok()?;
 
-    Some(auth)
+            let auth = AuthRequest {
+                code: query(&url, "code")?,
+                state: query(&url, "state")?,
+                scope: query(&url, "scope")?,
+            };
+
+            let message = "Go back to your application!";
+            stream
+                .write_all(
+                    format!(
+                        "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
+                        message.len(),
+                        message
+                    )
+                    .as_bytes(),
+                )
+                .await
+                .ok()?;
+
+            // The server will terminate itself after collecting the first code.
+            break (Some(auth));
+        }
+    }
 }
