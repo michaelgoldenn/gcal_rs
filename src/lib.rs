@@ -28,9 +28,13 @@ pub use client::*;
 // pub mod oauth;
 // pub use oauth::*;
 
-/// Resource clients and structures.
-mod resources;
-pub use resources::*;
+/// Calendar types.
+mod calendar;
+pub use calendar::*;
+
+/// Events, the method you will work with most; events in a single calendar.
+mod event;
+pub use event::*;
 
 /// Sendable trait for constructing your own queries to Google Calendar through the client.
 mod sendable;

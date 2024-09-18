@@ -5,7 +5,7 @@ use reqwest::{
     ClientBuilder, RequestBuilder, Response,
 };
 
-use super::{ClientError, ClientResult, Sendable};
+use super::{CalendarListClient, ClientError, ClientResult, EventClient, Sendable};
 
 /// Client is a Google Calendar client. The access key must have already been fetched and the oauth
 /// negotiation should have already been completed. The client itself only implements HTTP verbs
@@ -31,55 +31,15 @@ impl GCalClient {
             debug: false,
         })
     }
+    pub fn calendar_client(&self) -> CalendarListClient {
+        CalendarListClient::new(self.clone())
+    }
+    pub fn event_client(&self) -> EventClient {
+        EventClient::new(self.clone())
+    }
 
     pub fn set_debug(&mut self) {
         self.debug = true
-    }
-
-    fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
-        req.header("Authorization", format!("Bearer {}", self.access_key))
-    }
-
-    async fn send(&self, mut req: RequestBuilder) -> ClientResult<Response> {
-        if let Some(headers) = &self.headers {
-            req = req.headers(headers.clone())
-        }
-
-        let resp = self.set_bearer(req).send().await?;
-        if resp.status() != 200 {
-            if let Some(header) = resp.headers().get("WWW-Authenticate") {
-                if header
-                    .to_str()?
-                    .starts_with(r#"Bearer error="invalid_token""#)
-                {
-                    return Err(ClientError::InvalidToken);
-                }
-            }
-            Ok(resp.error_for_status()?)
-        } else {
-            Ok(resp)
-        }
-    }
-
-    fn get_url(
-        &self,
-        method: &str,
-        target: &impl Sendable,
-        action: Option<String>,
-    ) -> ClientResult<url::Url> {
-        let url = target.url(action)?;
-
-        if self.debug {
-            let byt = target.body_bytes()?;
-            eprintln!(
-                "[{}] {} | {}",
-                method,
-                url,
-                String::from_utf8(byt).unwrap_or_default()
-            );
-        }
-
-        Ok(url)
     }
 
     /// Perform a GET request.
@@ -142,5 +102,51 @@ impl GCalClient {
     ) -> ClientResult<Response> {
         self.send(self.client.delete(self.get_url("DELETE", &target, action)?))
             .await
+    }
+
+    async fn send(&self, mut req: RequestBuilder) -> ClientResult<Response> {
+        if let Some(headers) = &self.headers {
+            req = req.headers(headers.clone())
+        }
+
+        let resp = self.set_bearer(req).send().await?;
+        if resp.status() != 200 {
+            if let Some(header) = resp.headers().get("WWW-Authenticate") {
+                if header
+                    .to_str()?
+                    .starts_with(r#"Bearer error="invalid_token""#)
+                {
+                    return Err(ClientError::InvalidToken);
+                }
+            }
+            Ok(resp.error_for_status()?)
+        } else {
+            Ok(resp)
+        }
+    }
+
+    fn get_url(
+        &self,
+        method: &str,
+        target: &impl Sendable,
+        action: Option<String>,
+    ) -> ClientResult<url::Url> {
+        let url = target.url(action)?;
+
+        if self.debug {
+            let byt = target.body_bytes()?;
+            eprintln!(
+                "[{}] {} | {}",
+                method,
+                url,
+                String::from_utf8(byt).unwrap_or_default()
+            );
+        }
+
+        Ok(url)
+    }
+
+    fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
+        req.header("Authorization", format!("Bearer {}", self.access_key))
     }
 }
