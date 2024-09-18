@@ -25,8 +25,8 @@
 mod client;
 pub use client::*;
 
-// pub mod oauth;
-// pub use oauth::*;
+pub mod oauth;
+pub use oauth::*;
 
 /// Calendar types.
 mod calendar;

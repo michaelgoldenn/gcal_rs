@@ -37,6 +37,12 @@ impl GCalClient {
     pub fn event_client(&self) -> EventClient {
         EventClient::new(self.clone())
     }
+    pub fn clients(self) -> (CalendarListClient, EventClient) {
+        (
+            CalendarListClient::new(self.clone()),
+            EventClient::new(self),
+        )
+    }
 
     pub fn set_debug(&mut self) {
         self.debug = true
