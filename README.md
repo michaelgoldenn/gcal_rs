@@ -1,3 +1,32 @@
+</div>
+
+<div align="center">
+
+<br>
+
+# 🗓️ gcal_rs: Google Calendar API 🗓️
+
+> A blazingly fast, hand written Google calendar API in Rust.
+
+<a href="https://docs.rs/gcal_rs/latest/gcal_rs/"> ![Docs](https://img.shields.io/docsrs/gcal_rs?color=37d4a7&logo=rust&style=for-the-badge)</a>
+<a href="https://crates.io/crates/gcal_rs"> ![Crate](https://img.shields.io/crates/v/gcal_rs?color=ff4971&style=for-the-badge)</a>
+<a href="/LICENSE"> ![License](https://img.shields.io/badge/license-GPL%20v3-blueviolet?style=for-the-badge)</a>
+<a href="#development"> ![Status](https://img.shields.io/badge/status-WIP-informational?style=for-the-badge&color=ff69b4) </a>
+
+[Usage](#usage)
+•
+[Notes](#notes)
+•
+[Examples](#examples)
+•
+[Development](#development)
+<br>
+[Docs](https://docs.rs/shadocal/latest/shadocal/)
+
+</div>
+
+## Usage
+
 # gcal: Another Google Calendar API library for rust-lang
 
 I wrote this by hand because I found other clients hard to use for my use-cases. This provides an API layer into the Google Calendar API that is very minimal but also mostly complete. Types are fully represented.
@@ -31,4 +60,8 @@ I am happy to maintain the work within reason, but the goal is mostly to prop up
 
 ## Author
 
-Erik Hollensbe <erik+github@hollensbe.org>
+Shadorain <shadorain7517@gmail.com>
+
+### Original Authors
+
+Erik Hollensbe <erik+github@hollensbe.org> : [gcal](https://github.com/erikh/gcal)
