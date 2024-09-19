@@ -15,14 +15,15 @@ use gcal::*;
 #[tokio::main]
 async fn main() {
     let client_id = std::env::var("GOOGLE_CLIENT_ID")
-        .expect("Missing the GOOGLE_CLIENT_ID environment variable.");
+        .expect("[ERR] Missing the GOOGLE_CLIENT_ID environment variable.");
     let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
-        .expect("Missing the GOOGLE_CLIENT_SECRET environment variable.");
-    let access_key = OAuth::naive(client_id, client_secret)
-        .await
-        .expect("Failed to get access key.");
+        .expect("[ERR] Missing the GOOGLE_CLIENT_SECRET environment variable.");
 
-    let (calendar_client, event_client) = GCalClient::new(access_key).unwrap().clients();
+    let (acc_token, _) = OAuth::naive(client_id, client_secret)
+        .await
+        .expect("[ERR] Failed to get access key.");
+
+    let (calendar_client, event_client) = GCalClient::new(acc_token).unwrap().clients();
 
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)
@@ -30,14 +31,19 @@ async fn main() {
         .unwrap();
 
     let start = chrono::Local::now();
-    let end = start.checked_add_signed(chrono::Duration::days(7)).unwrap();
+    let end = start + chrono::Duration::days(1);
 
     let mut event_list = Vec::new();
     for calendar in list {
-        event_list.extend(event_client.list(calendar.id, start, end).await.unwrap());
+        if let Ok(e) = event_client.list(calendar.id.clone(), start, end).await {
+            event_list.extend(e);
+        } else {
+            println!("[ERR] Calendar failed: {}", calendar.id);
+        }
     }
 
+    println!();
     for event in &event_list {
-        eprintln!("{:?} {:?}", event.id, event.summary);
+        println!("Event: {:?}", event.summary);
     }
 }

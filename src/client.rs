@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     ClientBuilder, RequestBuilder, Response,
@@ -13,7 +11,7 @@ use super::{CalendarListClient, ClientError, ClientResult, EventClient, Sendable
 /// and CalendarListClient to do transactional work.
 #[derive(Debug, Clone)]
 pub struct GCalClient {
-    client: Arc<reqwest::Client>,
+    client: reqwest::Client,
     access_key: String,
     headers: Option<HeaderMap<HeaderValue>>,
     debug: bool,
@@ -22,7 +20,7 @@ pub struct GCalClient {
 impl GCalClient {
     /// Create a new client. Requires an access key.
     pub fn new(access_key: String) -> ClientResult<Self> {
-        let client = Arc::new(ClientBuilder::new().gzip(true).https_only(true).build()?);
+        let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
         Ok(Self {
             client,

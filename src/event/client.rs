@@ -19,7 +19,7 @@ impl EventClient {
     /// Get an event by ID.
     pub async fn get(&self, calendar_id: String, event_id: String) -> ClientResult<Event> {
         let event = Event {
-            id: Some(event_id),
+            id: event_id,
             calendar_id: Some(calendar_id),
             ..Default::default()
         };

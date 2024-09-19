@@ -16,8 +16,10 @@ use super::*;
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Events {
-    #[serde(default = "default_events_kind")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "default_events_kind",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub kind: Option<String>,
     pub etag: String,
     pub summary: String,
@@ -37,19 +39,22 @@ pub struct Events {
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
-    #[serde(default = "default_event_kind")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "default_event_kind",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub kind: Option<String>,
+    pub id: String,
+    pub summary: String,
+
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    #[serde(skip)]
-    pub calendar_id: Option<String>,
+    pub html_link: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attendees: Option<Vec<EventAttendees>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attachments: Option<Vec<EventAttachment>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attendees_omitted: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attendees: Option<Vec<EventAttendees>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub color_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -72,20 +77,19 @@ pub struct Event {
     pub extended_properties: Option<EventExtendedProperties>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gadget: Option<EventGadget>,
-    #[serde(rename = "guestsCanInviteOthers", default = "default_true")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "guestsCanInviteOthers",
+        default = "default_true",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub guests_invite_others: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guests_can_modify: Option<bool>,
-    #[serde(default = "default_true")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default = "default_true", skip_serializing_if = "Option::is_none")]
     pub guests_can_see_other_guests: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hangout_link: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub html_link: Option<String>,
-    #[serde(rename = "iCalUID")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "iCalUID", skip_serializing_if = "Option::is_none")]
     pub ical_uid: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: Option<String>,
@@ -112,8 +116,6 @@ pub struct Event {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<EventStatus>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub transparency: Option<EventTransparency>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<String>,
@@ -121,6 +123,9 @@ pub struct Event {
     pub visibility: Option<EventVisibility>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub working_location: Option<EventWorkingLocation>,
+
+    #[serde(skip)]
+    pub calendar_id: Option<String>,
     #[serde(skip)]
     query_string: QueryParams,
 }
@@ -130,9 +135,9 @@ impl Sendable for Event {
         format!(
             "calendars/{}/events{}{}",
             self.calendar_id.clone().unwrap(),
-            self.id
-                .clone()
-                .map_or_else(String::new, |x| format!("/{}", x)),
+            self.id,
+            // .clone()
+            // .map_or_else(String::new, |x| format!("/{}", x)),
             action.map_or_else(String::new, |x| format!("/{}", x))
         )
     }

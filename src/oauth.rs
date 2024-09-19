@@ -107,14 +107,17 @@ impl OAuth {
 }
 
 impl OAuth {
-    pub async fn naive(client_id: String, client_secret: String) -> Result<String> {
+    pub async fn naive(client_id: String, client_secret: String) -> Result<(String, String)> {
         let mut oauth = OAuth::new(client_id, client_secret);
-        println!("Open this URL: {}", oauth.auth_url());
+        println!("🔗 Open this URL: {}", oauth.auth_url());
 
         let auth = listener().await.context("Failed to get auth response.")?;
         let (_, token) = oauth.auth(auth).await?;
         println!("Successfully retrieved access token.");
-        Ok(token.access_token().secret().clone())
+        Ok((
+            token.access_token().secret().clone(),
+            token.refresh_token().unwrap().secret().clone(),
+        ))
     }
 }
 async fn listener() -> Option<AuthRequest> {

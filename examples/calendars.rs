@@ -15,20 +15,21 @@ use gcal::*;
 #[tokio::main]
 async fn main() {
     let client_id = std::env::var("GOOGLE_CLIENT_ID")
-        .expect("Missing the GOOGLE_CLIENT_ID environment variable.");
+        .expect("[ERR] Missing the GOOGLE_CLIENT_ID environment variable.");
     let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
-        .expect("Missing the GOOGLE_CLIENT_SECRET environment variable.");
-    let access_key = OAuth::naive(client_id, client_secret)
+        .expect("[ERR] Missing the GOOGLE_CLIENT_SECRET environment variable.");
+    let (acc_token, _) = OAuth::naive(client_id, client_secret)
         .await
-        .expect("Failed to get access key.");
+        .expect("[ERR] Failed to get access key.");
 
-    let calendar_client = GCalClient::new(access_key).unwrap().calendar_client();
+    let calendar_client = GCalClient::new(acc_token).unwrap().calendar_client();
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)
         .await
         .unwrap();
 
-    for event in &list {
-        eprintln!("{} {}", event.id, event.summary);
+    println!();
+    for cal in &list {
+        eprintln!("Calendar: {} {}", cal.id, cal.summary);
     }
 }
