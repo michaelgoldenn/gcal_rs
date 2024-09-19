@@ -25,11 +25,12 @@
 
 </div>
 
-## Usage
+## Summary
 
-# gcal: Another Google Calendar API library for rust-lang
+This is intended to be a solution to the current state of Google Calendar API's for Rust out there currently.
+There are a few out there but either are for specific projects usecases or just are horribly generated.
 
-I wrote this by hand because I found other clients hard to use for my use-cases. This provides an API layer into the Google Calendar API that is very minimal but also mostly complete. Types are fully represented.
+I'm not saying this is perfect but it attempts to be better and have some solidity.
 
 ## Example
 
@@ -37,26 +38,39 @@ I wrote this by hand because I found other clients hard to use for my use-cases.
 use gcal::*;
 
 #[tokio::main]
-async fn main() -> Result<(), anyhow::Error> {
-    let access_key = std::env::args().nth(1).expect("Provide an access key");
-    let now = chrono::Local::now();
-    let client = Client::new(access_key);
-    let client = EventClient::new(client);
-    let list = client.list(now - chrono::Duration::days(1), now).await?;
+async fn main() -> anyhow::Result<()> {
+    let client_id = std::env::var("GOOGLE_CLIENT_ID")?;
+    let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")?;
 
-    for event in &list {
-        eprintln!("{} {}", event.id, event.summary);
+    let (acc_token, _) = OAuth::naive(client_id, client_secret).await?;
+
+    let (calendar_client, event_client) = GCalClient::new(acc_token)?.clients();
+
+    let list = calendar_client
+        .list(true, CalendarAccessRole::Reader)
+        .await?;
+
+    let start = chrono::Local::now();
+    let end = start + chrono::Duration::days(1);
+
+    let mut event_list = Vec::new();
+    for calendar in list {
+        if let Ok(e) = event_client.list(calendar.id.clone(), start, end).await {
+            event_list.extend(e);
+        } else {
+            println!("[ERR] Calendar failed: {}", calendar.id);
+        }
+    }
+
+    for event in &event_list {
+        println!("Event: {:?}", event.summary);
     }
 }
 ```
 
 ## Status
 
-This library is being maintained by hand and is not generated from any API source e.g. OpenAPI, because I can't seem to find an example of Google providing that directly. As a result, calls may be incorrect in spots, especially where they are supplied for completeness and not used in [saturn](https://github.com/erikh/saturn) which is what this library was built to power.
-
-If documentation is sparse, I am sorry, if you need explanations please feel free to put in a ticket.
-
-I am happy to maintain the work within reason, but the goal is mostly to prop up saturn, and any major overhauls that would alter that charter would likely be rejected.
+Currently working on updating documentation for each part of the code and structuring the best API.
 
 ## Author
 

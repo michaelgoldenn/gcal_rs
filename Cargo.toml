@@ -1,12 +1,15 @@
 [package]
-name = "gcal"
-version = "0.1.6"
+name = "gcal_rs"
+version = "0.1.1"
 edition = "2021"
-description = "gcal is simplistic a client library for Google Calendar, designed to power saturn-cli"
-authors = ["Erik Hollensbe <erik+github@hollensbe.org>"]
-license = "MIT"
-homepage = "https://github.com/erikh/gcal"
-repository = "https://github.com/erikh/gcal"
+description = "A blazingly fast, hand written Google calendar API in Rust"
+authors = ["Shadorain <shadorain7517@gmail.com"]
+readme = "README.md"
+license = "GPL-3.0"
+homepage = "https://github.com/Shadorain/gcal_rs"
+repository = "https://github.com/Shadorain/gcal_rs"
+keywords = ["google_calendar", "calendar", "oauth2", "events"]
+categories = ["asynchronous", "date-and-time"]
 
 [dependencies]
 anyhow = "1"
