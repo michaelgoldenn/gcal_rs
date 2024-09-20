@@ -71,7 +71,7 @@ impl EventClient {
         end_time: chrono::DateTime<chrono::Local>,
     ) -> ClientResult<Vec<Event>> {
         let mut event = Event {
-            calendar_id: Some(calendar_id),
+            calendar_id: Some(calendar_id.clone()),
             ..Default::default()
         };
         event.add_query("timeMin".to_string(), start_time.to_rfc3339());
@@ -79,7 +79,9 @@ impl EventClient {
         event.add_query("singleEvents".to_string(), "true".to_string());
         event.add_query("orderBy".to_string(), "startTime".to_string());
 
-        Ok(self.0.get(None, event).await?.json::<Events>().await?.items)
+        let mut events = self.0.get(None, event).await?.json::<Events>().await?;
+        events.add_calendar(calendar_id);
+        Ok(events.items)
     }
 
     /// Move event to another destination calendar_id.

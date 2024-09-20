@@ -10,7 +10,7 @@
 //! ```
 //!
 //! ...and follow the instructions.
-use gcal::*;
+use gcal_rs::*;
 
 #[tokio::main]
 async fn main() {
@@ -28,8 +28,8 @@ async fn main() {
         .await
         .unwrap();
 
-    println!();
+    println!("Calendars:");
     for cal in &list {
-        eprintln!("Calendar: {} {}", cal.id, cal.summary);
+        eprintln!("  - {} {}", cal.summary, cal.id);
     }
 }

@@ -147,6 +147,14 @@ impl Sendable for Event {
     }
 }
 
+impl Events {
+    pub fn add_calendar(&mut self, calendar_id: String) {
+        self.items.iter_mut().for_each(|e| {
+            e.calendar_id = Some(calendar_id.clone());
+        });
+    }
+}
+
 impl Event {
     pub fn add_query(&mut self, key: String, value: String) {
         self.query_string.insert(key, value);

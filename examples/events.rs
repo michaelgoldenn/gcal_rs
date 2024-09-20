@@ -10,7 +10,7 @@
 //! ```
 //!
 //! ...and follow the instructions.
-use gcal::*;
+use gcal_rs::*;
 
 #[tokio::main]
 async fn main() {
@@ -42,8 +42,8 @@ async fn main() {
         }
     }
 
-    println!();
+    println!("Events: ");
     for event in &event_list {
-        println!("Event: {:?}", event.summary);
+        println!("  - {} {:?}", event.summary, event.calendar_id);
     }
 }
