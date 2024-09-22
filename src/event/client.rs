@@ -20,7 +20,7 @@ impl EventClient {
     pub async fn get(&self, calendar_id: String, event_id: String) -> ClientResult<Event> {
         let event = Event {
             id: event_id,
-            calendar_id: Some(calendar_id),
+            calendar_id,
             ..Default::default()
         };
         Ok(self.0.get(None, event).await?.json().await?)
@@ -40,10 +40,8 @@ impl EventClient {
     /// Insert an event. See the Google Calendar documentation for the differences between import
     /// and insert.
     pub async fn insert(&self, mut event: Event) -> ClientResult<Event> {
-        if let Some(attachments) = event.attachments.clone() {
-            if !attachments.is_empty() {
-                event.add_query("supportsAttachments".to_string(), "true".to_string());
-            }
+        if !event.attachments.is_empty() {
+            event.add_query("supportsAttachments".to_string(), "true".to_string());
         }
         Ok(self
             .0
@@ -71,7 +69,7 @@ impl EventClient {
         end_time: chrono::DateTime<chrono::Local>,
     ) -> ClientResult<Vec<Event>> {
         let mut event = Event {
-            calendar_id: Some(calendar_id.clone()),
+            calendar_id: calendar_id.clone(),
             ..Default::default()
         };
         event.add_query("timeMin".to_string(), start_time.to_rfc3339());
@@ -79,7 +77,14 @@ impl EventClient {
         event.add_query("singleEvents".to_string(), "true".to_string());
         event.add_query("orderBy".to_string(), "startTime".to_string());
 
-        let mut events = self.0.get(None, event).await?.json::<Events>().await?;
+        let mut events = self
+            .0
+            .get(None, event)
+            .await
+            .expect("Fail here 1")
+            .json::<Events>()
+            .await
+            .expect("Fail 2");
         events.add_calendar(calendar_id);
         Ok(events.items)
     }

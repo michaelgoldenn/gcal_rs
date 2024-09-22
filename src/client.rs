@@ -12,19 +12,19 @@ use super::{CalendarListClient, ClientError, ClientResult, EventClient, Sendable
 #[derive(Debug, Clone)]
 pub struct GCalClient {
     client: reqwest::Client,
-    access_key: String,
+    access_token: String,
     headers: Option<HeaderMap<HeaderValue>>,
     debug: bool,
 }
 
 impl GCalClient {
     /// Create a new client. Requires an access key.
-    pub fn new(access_key: String) -> ClientResult<Self> {
+    pub fn new(access_token: String) -> ClientResult<Self> {
         let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
         Ok(Self {
             client,
-            access_key,
+            access_token,
             headers: None,
             debug: false,
         })
@@ -123,7 +123,7 @@ impl GCalClient {
                     return Err(ClientError::InvalidToken);
                 }
             }
-            Ok(resp.error_for_status()?)
+            Ok(resp)
         } else {
             Ok(resp)
         }
@@ -138,12 +138,11 @@ impl GCalClient {
         let url = target.url(action)?;
 
         if self.debug {
-            let byt = target.body_bytes()?;
             eprintln!(
                 "[{}] {} | {}",
                 method,
                 url,
-                String::from_utf8(byt).unwrap_or_default()
+                String::from_utf8(target.body_bytes()?).unwrap_or_default()
             );
         }
 
@@ -151,6 +150,6 @@ impl GCalClient {
     }
 
     fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
-        req.header("Authorization", format!("Bearer {}", self.access_key))
+        req.header("Authorization", format!("Bearer {}", self.access_token))
     }
 }
