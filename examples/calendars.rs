@@ -18,11 +18,11 @@ async fn main() {
         .expect("[ERR] Missing the GOOGLE_CLIENT_ID environment variable.");
     let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")
         .expect("[ERR] Missing the GOOGLE_CLIENT_SECRET environment variable.");
-    let (acc_token, _) = OAuth::naive(client_id, client_secret)
+    let token = OAuth::naive(client_id, client_secret)
         .await
         .expect("[ERR] Failed to get access key.");
 
-    let calendar_client = GCalClient::new(acc_token).unwrap().calendar_client();
+    let calendar_client = GCalClient::new(token.access).unwrap().calendar_client();
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)
         .await
