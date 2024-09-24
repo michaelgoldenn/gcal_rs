@@ -2,6 +2,7 @@ use super::{ClientResult, Event, Events, GCalClient, SendUpdates};
 
 /// EventClient is the method of managing events from a specific calendar. Requires a Google
 /// Calendar client.
+#[derive(Debug, Clone)]
 pub struct EventClient(GCalClient);
 
 impl EventClient {

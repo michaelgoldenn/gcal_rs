@@ -2,6 +2,7 @@ use super::{CalendarAccessRole, CalendarList, CalendarListItem, ClientResult, GC
 
 /// CalendarListClient is the method of accessing the calendar list. You must provide it with a
 /// Google Calendar client.
+#[derive(Debug, Clone)]
 pub struct CalendarListClient(GCalClient);
 
 impl CalendarListClient {

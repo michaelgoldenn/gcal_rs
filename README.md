@@ -42,28 +42,29 @@ async fn main() -> anyhow::Result<()> {
     let client_id = std::env::var("GOOGLE_CLIENT_ID")?;
     let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")?;
 
-    let (acc_token, _) = OAuth::naive(client_id, client_secret).await?;
+    let token = OAuth::naive(client_id, client_secret).await?;
 
-    let (calendar_client, event_client) = GCalClient::new(acc_token)?.clients();
+    let (calendar_client, event_client) = GCalClient::new(token.access)?.clients();
 
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)
         .await?;
 
-    let start = chrono::Local::now();
-    let end = start + chrono::Duration::days(1);
+    let start = Local::now();
+    let end = Local::now().checked_add_signed(Duration::days(7)).unwrap();
 
     let mut event_list = Vec::new();
     for calendar in list {
-        if let Ok(e) = event_client.list(calendar.id.clone(), start, end).await {
-            event_list.extend(e);
-        } else {
-            println!("[ERR] Calendar failed: {}", calendar.id);
-        }
+        event_list.extend(
+            event_client
+                .list(calendar.id.clone(), start, end)
+                .await?,
+        );
     }
 
+    println!("Events: ");
     for event in &event_list {
-        println!("Event: {:?}", event.summary);
+        println!("  - {} : {}", event.summary, event.calendar_id);
     }
 }
 ```
