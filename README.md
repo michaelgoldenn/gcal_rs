@@ -42,7 +42,9 @@ async fn main() -> anyhow::Result<()> {
     let client_id = std::env::var("GOOGLE_CLIENT_ID")?;
     let client_secret = std::env::var("GOOGLE_CLIENT_SECRET")?;
 
-    let token = OAuth::naive(client_id, client_secret).await?;
+    let token = OAuth::new(client_id, client_secret, "http://localhost:5000/auth")
+        .naive()
+        .await?;
 
     let (calendar_client, event_client) = GCalClient::new(token.access)?.clients();
 

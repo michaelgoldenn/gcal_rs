@@ -28,18 +28,23 @@ pub struct OAuthRequest {
     pub scope: String,
 }
 
+#[derive(Debug)]
 pub struct OAuth {
     client: BasicClient,
     pkce_code_verifier: Option<PkceCodeVerifier>,
 }
 
 impl OAuth {
-    pub fn new(client_id: String, client_secret: String, redir_url: String) -> Self {
+    pub fn new(
+        client_id: impl ToString,
+        client_secret: impl ToString,
+        redir_url: impl ToString,
+    ) -> Self {
         // Set up the config for the Google OAuth2 process.
         Self {
             client: BasicClient::new(
-                ClientId::new(client_id),
-                Some(ClientSecret::new(client_secret)),
+                ClientId::new(client_id.to_string()),
+                Some(ClientSecret::new(client_secret.to_string())),
                 AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())
                     .expect("Invalid authorization endpoint URL"),
                 Some(
@@ -47,7 +52,9 @@ impl OAuth {
                         .expect("Invalid token endpoint URL"),
                 ),
             )
-            .set_redirect_uri(RedirectUrl::new(redir_url).expect("Invalid redirect URL"))
+            .set_redirect_uri(
+                RedirectUrl::new(redir_url.to_string()).expect("Invalid redirect URL"),
+            )
             .set_revocation_uri(
                 RevocationUrl::new("https://oauth2.googleapis.com/revoke".to_string())
                     .expect("Invalid revocation endpoint URL"),
@@ -56,10 +63,10 @@ impl OAuth {
         }
     }
 
-    pub async fn exhange_refresh(&self, ref_token: String) -> Result<OToken> {
+    pub async fn exhange_refresh(&self, ref_token: impl ToString) -> Result<OToken> {
         Ok(self
             .client
-            .exchange_refresh_token(&RefreshToken::new(ref_token))
+            .exchange_refresh_token(&RefreshToken::new(ref_token.to_string()))
             .request_async(reqwest::async_http_client)
             .await?
             .into())
@@ -116,7 +123,7 @@ impl OAuth {
         Ok(())
     }
 
-    pub async fn naive(client_id: String, client_secret: String) -> Result<OToken> {
+    pub async fn naive(&mut self) -> Result<OToken> {
         async fn listener() -> Option<OAuthRequest> {
             fn query(url: &url::Url, key: &str) -> Option<String> {
                 url.query_pairs()
@@ -161,15 +168,10 @@ impl OAuth {
                 }
             }
         }
-        let mut oauth = OAuth::new(
-            client_id,
-            client_secret,
-            "http://127.0.0.1:5000/auth".to_string(),
-        );
-        println!("🔗 Open this URL: {}", oauth.auth_url());
+        println!("🔗 Open this URL: {}", self.auth_url());
 
         let auth = listener().await.context("Failed to get auth response.")?;
-        let (_, token) = oauth.auth(auth).await?;
+        let (_, token) = self.auth(auth).await?;
         println!("[INFO] Successfully retrieved access token.");
         Ok(token)
     }

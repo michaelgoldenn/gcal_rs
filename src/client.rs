@@ -19,12 +19,12 @@ pub struct GCalClient {
 
 impl GCalClient {
     /// Create a new client. Requires an access key.
-    pub fn new(access_token: String) -> ClientResult<Self> {
+    pub fn new(access_token: impl ToString) -> ClientResult<Self> {
         let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
         Ok(Self {
             client,
-            access_token,
+            access_token: access_token.to_string(),
             headers: None,
             debug: false,
         })
