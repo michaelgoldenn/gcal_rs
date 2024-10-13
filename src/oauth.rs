@@ -11,6 +11,7 @@ use serde::Deserialize;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     net::TcpListener,
+    sync::Mutex,
 };
 
 #[derive(Default, Debug, Clone)]
@@ -31,7 +32,7 @@ pub struct OAuthRequest {
 #[derive(Debug)]
 pub struct OAuth {
     client: BasicClient,
-    pkce_code_verifier: Option<PkceCodeVerifier>,
+    pkce_code_verifier: Mutex<Option<PkceCodeVerifier>>,
 }
 
 impl OAuth {
@@ -59,7 +60,7 @@ impl OAuth {
                 RevocationUrl::new("https://oauth2.googleapis.com/revoke".to_string())
                     .expect("Invalid revocation endpoint URL"),
             ),
-            pkce_code_verifier: None,
+            pkce_code_verifier: Mutex::new(None),
         }
     }
 
@@ -72,11 +73,14 @@ impl OAuth {
             .into())
     }
 
-    pub fn auth_url(&mut self) -> String {
+    pub async fn auth_url(&self) -> String {
         // Google supports Proof Key for Code Exchange (PKCE - https://oauth.net/2/pkce/).
         // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
         let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
-        self.pkce_code_verifier = Some(pkce_code_verifier);
+        self.pkce_code_verifier
+            .lock()
+            .await
+            .get_or_insert(pkce_code_verifier);
 
         // Generate the authorization URL to which we'll redirect the user.
         let (authorize_url, _csrf_state) = self
@@ -94,7 +98,7 @@ impl OAuth {
         authorize_url.to_string()
     }
 
-    pub async fn auth(&mut self, request: OAuthRequest) -> Result<(String, OToken)> {
+    pub async fn auth(&self, request: OAuthRequest) -> Result<(String, OToken)> {
         let _scope = request.scope;
 
         // Exchange the code with a token.
@@ -104,6 +108,8 @@ impl OAuth {
                 .exchange_code(AuthorizationCode::new(request.code))
                 .set_pkce_verifier(
                     self.pkce_code_verifier
+                        .lock()
+                        .await
                         .take()
                         .context("PKCE code verifier should exist at this point")?,
                 )
@@ -168,7 +174,7 @@ impl OAuth {
                 }
             }
         }
-        println!("🔗 Open this URL: {}", self.auth_url());
+        println!("🔗 Open this URL: {}", self.auth_url().await);
 
         let auth = listener().await.context("Failed to get auth response.")?;
         let (_, token) = self.auth(auth).await?;

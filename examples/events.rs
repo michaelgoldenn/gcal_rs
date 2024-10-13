@@ -24,6 +24,7 @@ async fn main() {
         .naive()
         .await
         .expect("[ERR] Failed to get access key.");
+    println!("Refresh: {:?}", token.refresh);
 
     // # Mini example showing how to refresh the access token.
     //
@@ -33,7 +34,7 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    let (calendar_client, event_client) = GCalClient::new(token.access).unwrap().clients();
+    let (calendar_client, event_client) = GCalClient::new(token).unwrap().clients();
 
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)

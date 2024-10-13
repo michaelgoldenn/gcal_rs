@@ -3,7 +3,7 @@ use reqwest::{
     ClientBuilder, RequestBuilder, Response,
 };
 
-use super::{CalendarListClient, ClientError, ClientResult, EventClient, Sendable};
+use super::{CalendarListClient, ClientError, ClientResult, EventClient, OToken, Sendable};
 
 /// Client is a Google Calendar client. The access key must have already been fetched and the oauth
 /// negotiation should have already been completed. The client itself only implements HTTP verbs
@@ -12,20 +12,21 @@ use super::{CalendarListClient, ClientError, ClientResult, EventClient, Sendable
 #[derive(Debug, Clone)]
 pub struct GCalClient {
     client: reqwest::Client,
-    access_token: String,
     headers: Option<HeaderMap<HeaderValue>>,
+    token: OToken,
+
     debug: bool,
 }
 
 impl GCalClient {
     /// Create a new client. Requires an access key.
-    pub fn new(access_token: impl ToString) -> ClientResult<Self> {
+    pub fn new(token: OToken) -> ClientResult<Self> {
         let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
         Ok(Self {
             client,
-            access_token: access_token.to_string(),
             headers: None,
+            token,
             debug: false,
         })
     }
@@ -150,6 +151,6 @@ impl GCalClient {
     }
 
     fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
-        req.header("Authorization", format!("Bearer {}", self.access_token))
+        req.header("Authorization", format!("Bearer {}", self.token.access))
     }
 }
