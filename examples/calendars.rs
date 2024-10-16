@@ -23,7 +23,7 @@ async fn main() {
         .await
         .expect("[ERR] Failed to get access key.");
 
-    let calendar_client = GCalClient::new(token).unwrap().calendar_client();
+    let calendar_client = GCalClient::new(token, None).unwrap().calendar_client();
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)
         .await

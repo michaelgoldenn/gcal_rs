@@ -34,7 +34,7 @@ async fn main() {
     //     .await
     //     .unwrap();
 
-    let (calendar_client, event_client) = GCalClient::new(token).unwrap().clients();
+    let (calendar_client, event_client) = GCalClient::new(token, None).unwrap().clients();
 
     let list = calendar_client
         .list(true, CalendarAccessRole::Reader)

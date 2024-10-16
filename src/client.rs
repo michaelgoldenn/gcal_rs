@@ -1,9 +1,12 @@
+use std::sync::Arc;
+
 use reqwest::{
     header::{HeaderMap, HeaderValue},
     ClientBuilder, RequestBuilder, Response,
 };
+use tokio::sync::RwLock;
 
-use super::{CalendarListClient, ClientError, ClientResult, EventClient, OToken, Sendable};
+use super::{CalendarListClient, ClientError, ClientResult, EventClient, OAuth, OToken, Sendable};
 
 /// Client is a Google Calendar client. The access key must have already been fetched and the oauth
 /// negotiation should have already been completed. The client itself only implements HTTP verbs
@@ -13,20 +16,22 @@ use super::{CalendarListClient, ClientError, ClientResult, EventClient, OToken, 
 pub struct GCalClient {
     client: reqwest::Client,
     headers: Option<HeaderMap<HeaderValue>>,
-    token: OToken,
+    token: Arc<RwLock<OToken>>,
+    oauth: Option<Arc<OAuth>>,
 
     debug: bool,
 }
 
 impl GCalClient {
     /// Create a new client. Requires an access key.
-    pub fn new(token: OToken) -> ClientResult<Self> {
+    pub fn new(token: OToken, oauth: Option<Arc<OAuth>>) -> ClientResult<Self> {
         let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
         Ok(Self {
             client,
             headers: None,
-            token,
+            token: Arc::new(token.into()),
+            oauth,
             debug: false,
         })
     }
@@ -110,11 +115,14 @@ impl GCalClient {
     }
 
     async fn send(&self, mut req: RequestBuilder) -> ClientResult<Response> {
+        if let Some(oauth) = &self.oauth {
+            oauth.refresh(&mut *(self.token.write().await)).await?;
+        }
         if let Some(headers) = &self.headers {
             req = req.headers(headers.clone())
         }
 
-        let resp = self.set_bearer(req).send().await?;
+        let resp = self.set_bearer(req).await.send().await?;
         if resp.status() != 200 {
             if let Some(header) = resp.headers().get("WWW-Authenticate") {
                 if header
@@ -150,7 +158,10 @@ impl GCalClient {
         Ok(url)
     }
 
-    fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
-        req.header("Authorization", format!("Bearer {}", self.token.access))
+    async fn set_bearer(&self, req: RequestBuilder) -> RequestBuilder {
+        req.header(
+            "Authorization",
+            format!("Bearer {}", self.token.read().await.access),
+        )
     }
 }
