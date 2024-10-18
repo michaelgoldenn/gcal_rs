@@ -1,13 +1,15 @@
+use std::sync::Arc;
+
 use super::{ClientResult, Event, Events, GCalClient, SendUpdates};
 
 /// EventClient is the method of managing events from a specific calendar. Requires a Google
 /// Calendar client.
 #[derive(Debug, Clone)]
-pub struct EventClient(GCalClient);
+pub struct EventClient(Arc<GCalClient>);
 
 impl EventClient {
     /// Construct a new EventClient. Requires a Google Calendar Client.
-    pub fn new(client: GCalClient) -> Self {
+    pub fn new(client: Arc<GCalClient>) -> Self {
         Self(client)
     }
 

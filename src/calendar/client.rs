@@ -1,13 +1,15 @@
+use std::sync::Arc;
+
 use super::{CalendarAccessRole, CalendarList, CalendarListItem, ClientResult, GCalClient};
 
 /// CalendarListClient is the method of accessing the calendar list. You must provide it with a
 /// Google Calendar client.
 #[derive(Debug, Clone)]
-pub struct CalendarListClient(GCalClient);
+pub struct CalendarListClient(Arc<GCalClient>);
 
 impl CalendarListClient {
     /// Construct a CalendarListClient. Requires a Google Calendar Client.
-    pub fn new(client: GCalClient) -> Self {
+    pub fn new(client: Arc<GCalClient>) -> Self {
         Self(client)
     }
 

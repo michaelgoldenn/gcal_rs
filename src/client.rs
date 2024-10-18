@@ -24,24 +24,24 @@ pub struct GCalClient {
 
 impl GCalClient {
     /// Create a new client. Requires an access key.
-    pub fn new(token: OToken, oauth: Option<Arc<OAuth>>) -> ClientResult<Self> {
+    pub fn new(token: OToken, oauth: Option<Arc<OAuth>>) -> ClientResult<Arc<Self>> {
         let client = ClientBuilder::new().gzip(true).https_only(true).build()?;
 
-        Ok(Self {
+        Ok(Arc::new(Self {
             client,
             headers: None,
             token: Arc::new(token.into()),
             oauth,
             debug: false,
-        })
+        }))
     }
-    pub fn calendar_client(&self) -> CalendarListClient {
+    pub fn calendar_client(self: Arc<Self>) -> CalendarListClient {
         CalendarListClient::new(self.clone())
     }
-    pub fn event_client(&self) -> EventClient {
+    pub fn event_client(self: Arc<Self>) -> EventClient {
         EventClient::new(self.clone())
     }
-    pub fn clients(self) -> (CalendarListClient, EventClient) {
+    pub fn clients(self: Arc<Self>) -> (CalendarListClient, EventClient) {
         (
             CalendarListClient::new(self.clone()),
             EventClient::new(self),
