@@ -91,6 +91,9 @@ impl OAuth {
                 "https://www.googleapis.com/auth/calendar".to_string(),
             ))
             .add_scope(Scope::new(
+                "https://www.googleapis.com/auth/userinfo.email".to_string(),
+            ))
+            .add_scope(Scope::new(
                 "https://www.googleapis.com/auth/plus.me".to_string(),
             ))
             .set_pkce_challenge(pkce_code_challenge)
