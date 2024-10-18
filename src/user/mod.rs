@@ -9,6 +9,10 @@ pub struct UserInfo {
     pub id: String,
     pub email: String,
     pub verified_email: bool,
+    pub name: String,
+    pub given_name: String,
+    pub family_name: String,
+
     pub picture: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hd: Option<String>,
