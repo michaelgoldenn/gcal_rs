@@ -36,6 +36,10 @@ pub use calendar::*;
 mod event;
 pub use event::*;
 
+/// User, includes information about the user/account.
+mod user;
+pub use user::*;
+
 /// Sendable trait for constructing your own queries to Google Calendar through the client.
 mod sendable;
 pub use sendable::*;

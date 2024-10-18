@@ -132,10 +132,8 @@ impl GCalClient {
                     return Err(ClientError::InvalidToken);
                 }
             }
-            Ok(resp)
-        } else {
-            Ok(resp)
         }
+        Ok(resp)
     }
 
     fn get_url(
