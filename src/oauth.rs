@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::{Duration, SystemTime};
 
 use anyhow::{Context, Result};
 use oauth2::{
@@ -7,19 +7,19 @@ use oauth2::{
     PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RefreshToken, RevocationUrl, Scope,
     StandardTokenResponse, TokenResponse, TokenUrl,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     net::TcpListener,
     sync::Mutex,
 };
 
-#[derive(Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct OToken {
     pub access: String,
     pub refresh: Option<String>,
 
-    expires_at: Option<Instant>,
+    expires_at: Option<SystemTime>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -188,7 +188,7 @@ impl OAuth {
 
 impl OToken {
     pub fn is_expired(&self) -> bool {
-        if let Some(t) = self.expires_at.map(|e| e <= Instant::now()) {
+        if let Some(t) = self.expires_at.map(|e| e <= SystemTime::now()) {
             return t;
         }
         false
@@ -211,9 +211,9 @@ impl From<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> for OTok
     }
 }
 
-fn compute_expiration(expires_in: Option<Duration>) -> Option<Instant> {
+fn compute_expiration(expires_in: Option<Duration>) -> Option<SystemTime> {
     let secs_valid = expires_in
         .and_then(|dur| dur.checked_sub(Duration::from_secs(60)))
         .or_else(|| Some(Duration::from_secs(0)));
-    secs_valid.map(|secs| Instant::now() + secs)
+    secs_valid.map(|secs| SystemTime::now() + secs)
 }
