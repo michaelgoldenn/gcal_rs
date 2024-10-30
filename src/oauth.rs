@@ -22,7 +22,7 @@ pub struct OToken {
     expires_at: Option<SystemTime>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct OAuthRequest {
     pub code: String,
     pub state: String,
