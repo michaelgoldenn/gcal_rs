@@ -26,6 +26,12 @@ impl From<serde_json::Error> for ClientError {
     }
 }
 
+impl From<serde_qs::Error> for ClientError {
+    fn from(value: serde_qs::Error) -> Self {
+        Self::UnknownError(value.to_string())
+    }
+}
+
 impl From<url::ParseError> for ClientError {
     fn from(value: url::ParseError) -> Self {
         Self::UnknownError(value.to_string())
