@@ -1,28 +1,8 @@
 use std::sync::Arc;
-use serde::{Serialize, Deserialize};
-use serde_with::skip_serializing_none;
 
-use super::{CalendarAccessRole, CalendarList, CalendarListItem, ClientResult, GCalClient};
+use super::{CalendarAccessRole, CalendarList, CalendarListItem, ClientResult, GCalClient, CalendarListOptions, MinAccessRole};
 
-#[skip_serializing_none]
-#[derive(Default, Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CalendarListOptions {
-    pub max_results: Option<u32>,      // Default: 100, Max: 250
-    pub min_access_role: Option<MinAccessRole>,
-    pub page_token: Option<String>,
-    pub show_deleted: Option<bool>,    // Default: false
-    pub show_hidden: Option<bool>,     // Default: false
-    pub sync_token: Option<String>,
-}
-#[derive(Debug, Clone, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum MinAccessRole {
-    FreeBusyReader,  // Can read free/busy information
-    Owner,          // Can read and modify events and access control lists
-    Reader,         // Can read non-private events
-    Writer,         // Can read and modify events
-}
+
 // Implementation for string conversion
 impl From<&str> for MinAccessRole {
     fn from(s: &str) -> Self {

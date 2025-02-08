@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -93,4 +94,24 @@ pub enum AllowedSolutionType {
     EventHangout,
     EventNamedHangout,
     HangoutsMeet,
+}
+
+#[skip_serializing_none]
+#[derive(Default, Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CalendarListOptions {
+    pub max_results: Option<u32>,      // Default: 100, Max: 250
+    pub min_access_role: Option<MinAccessRole>,
+    pub page_token: Option<String>,
+    pub show_deleted: Option<bool>,    // Default: false
+    pub show_hidden: Option<bool>,     // Default: false
+    pub sync_token: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum MinAccessRole {
+    FreeBusyReader,  // Can read free/busy information
+    Owner,          // Can read and modify events and access control lists
+    Reader,         // Can read non-private events
+    Writer,         // Can read and modify events
 }

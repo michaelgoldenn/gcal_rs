@@ -1,55 +1,11 @@
 use std::{sync::Arc, default::Default};
-use serde::{Serialize, Deserialize};
-use serde_with::skip_serializing_none;
 
-use super::{ClientResult, Event, Events, GCalClient, SendUpdates};
+use super::{ClientResult, Event, Events, GCalClient, SendUpdates, EventListOptions};
 
 /// EventClient is the method of managing events from a specific calendar. Requires a Google
 /// Calendar client.
 #[derive(Debug, Clone)]
 pub struct EventClient(Arc<GCalClient>);
-
-#[skip_serializing_none]
-#[derive(Default, Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EventListOptions {
-    pub event_types: Option<Vec<EventTypes>>,
-    pub ical_uid: Option<String>,
-    pub max_attendees: Option<i32>,
-    pub max_results: Option<i32>,
-    pub order_by: Option<String>,
-    pub page_token: Option<String>,
-    pub q: Option<String>,
-    pub shared_extended_property: Option<String>,
-    pub show_deleted: Option<bool>,
-    pub show_hidden_invitations: Option<bool>,
-    pub single_events: Option<bool>,
-    pub sync_token: Option<String>,
-    pub time_max: Option<chrono::DateTime<chrono::Local>>,
-    pub time_min: Option<chrono::DateTime<chrono::Local>>,
-    pub timezone: Option<String>,
-    pub updated_min: Option<chrono::DateTime<chrono::Local>>,
-}
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum EventTypes {
-    Default,
-    FocusTime,
-    OutOfOffice,
-    WorkingLocation,
-}
-
-impl std::fmt::Display for EventTypes {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let s = match self {
-            EventTypes::Default => "default",
-            EventTypes::FocusTime => "focusTime",
-            EventTypes::OutOfOffice => "outOfOffice",
-            EventTypes::WorkingLocation => "workingLocation",
-        };
-        write!(f, "{}", s)
-    }
-}
 
 impl EventClient {
     /// Construct a new EventClient. Requires a Google Calendar Client.
