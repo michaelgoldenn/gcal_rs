@@ -2,3 +2,4 @@
 /Cargo.lock
 /examples/easy_google_oauth/target
 /examples/easy_google_oauth/Cargo.lock
+.direnv
